@@ -1,10 +1,4 @@
-Include a README.md file to the GitLab project that:
-Describe the hardware infrastructure,
-Describe the game,
-Describe how to use the keypad,
-Describe the game message exchange protocol (what comes after the 'PLAY' command),
-Describe how to compile and run your code.
-
+#### Battleship
 
 ## Hardware infrastructure:
 something something
@@ -20,8 +14,11 @@ We used a 4x3 keypad connected to the Raspberry Pi, this keypad functions like a
 After both players connect, the server will start to display each players play coordinate followed by the result of the shot (either hit a ship or missed a ship)
 
 ## How to compile and run our code:
-To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory. To compile, use this command in a Raspberry Pi PuTTy session :\
+To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory.\
+\
+To compile, use this command in a Raspberry Pi PuTTy session :\
 `g++ -std=c++20 -o mygame  mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread`\
+\
 To run the game, you can type :\
 `./mygame` 
 
