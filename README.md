@@ -20,6 +20,8 @@ Game message exchange protocol:
 After both players connect, the server will start to display each players play coordinate followed by the result of the shot (either hit a ship or missed a ship)
 
 How to compile and run our code:
-To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory. Using the following command in a Raspberry Pi command prompt : `g++ -std=c++20 -o mygame  mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread` will compile the game.
-To run the game, you can type `./mygame` and it will ask for your name and server IP before starting our Battleship game.
+To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory. To compile, use this command in a Raspberry Pi PuTTy session : 
+`g++ -std=c++20 -o mygame  mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread`
+To run the game, you can type :
+`./mygame` 
 
