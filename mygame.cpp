@@ -4,25 +4,29 @@
     This program implements a full two-player Battleship game.
     
     Each player generates a fleet on a 10x10 grid (using autogenFleet from genFleet.h)
-    and maintains a view of the opponent’s grid (initially empty). After the READY/START 
-    handshake with the server, the players alternate turns:
+    and maintains a view of the opponent’s grid (initially unknown).
+    After the READY/START handshake with the server, the players alternate turns:
     
-      - On your turn, you input your shot’s X and Y coordinates via the 4x3 keypad.
+      - On your turn, you enter your shot’s X and Y coordinates.
+        You may choose to use the keypad or standard keyboard.
         The shot is sent as: "PLAY,x,y\r\n".
       - The opponent processes the shot on their grid and replies with:
             "PLAY,RESULT,HIT\r\n"  if the shot hit a ship,
             "PLAY,RESULT,WIN\r\n"  if that shot sunk their final ship,
          or "PLAY,RESULT,MISS\r\n" if the shot missed.
-      - When you receive the result, your opponent grid view is updated. If you hit,
-        you may continue shooting; if you miss, the turn passes.
-      - The game ends when all of one player’s ships are sunk.
+      - After each shot, the current player grid and the opponent’s grid view are displayed.
+      - In the display, on your own grid ships are shown as solid squares,
+        hits as "X" and misses as "o".  
+        On the opponent grid, unknown cells show as "?", misses appear as blank,
+        and hits are shown as a white square (□, Unicode U+25A1).
+      - The game ends when all ships of one player are sunk.
       
-    Compile on your Raspberry Pi with:
+    Compilation:
       g++ -std=c++20 -o mygame mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread
 */
 
 #include "genFleet.h"    // Fleet generation functions and print routines
-#include "keypad.h"      // Keypad interface functions
+#include "keypad.h"      // Keypad interface (runs in the background)
 #include <cstring>
 #include <iostream>
 #include <netinet/in.h>
@@ -35,6 +39,8 @@
 #include <chrono>
 #include <thread>
 #include <sstream>
+#include <limits>
+#include <cctype>
 
 using namespace std;
 
@@ -71,48 +77,112 @@ void signalHandler(int signum) {
     running = 0;
 }
 
-// Read input from the keypad until '#' is pressed.
-// '*' is treated as a backspace.
-string readPlayCommand(Keypad &kp) {
-    string command;
-    while (true) {
-        string digit = kp.get_digit();
-        if (digit == "#") {
-            break;
-        } else if (digit == "*") {
-            if (!command.empty()) {
-                command.pop_back();
-                cout << "\b \b" << flush;
-            }
-        } else {
-            command += digit;
-            cout << digit << flush;
-        }
-        this_thread::sleep_for(chrono::milliseconds(100));
-    }
-    return command;
-}
+// Function to get a coordinate value using either keypad or keyboard.
+// The user is prompted to choose the input method.
 
-// Prompt the user via the keypad and get a coordinate (0-9).
-int getCoordinate(Keypad &kp, const string &prompt) {
+/*
+// New helper: Read a single digit from the keypad and validate it is between 0 and 9.
+int getCoordinateFromKeypad(Keypad &kp, const string &prompt) {
     cout << prompt << flush;
-    string input = readPlayCommand(kp);
-    int coord = 0;
-    try {
-        coord = stoi(input);
-    } catch (...) {
-        coord = 0;
+    string digit = kp.get_digit();  // This call blocks until a key is pressed
+    // Validate that digit is in the range "0" to "9"
+    while (digit < "0" || digit > "9") {
+        cout << "\nInvalid digit. Please press a key 0-9." << endl;
+        cout << prompt << flush;
+        digit = kp.get_digit();
     }
-    return coord;
+    cout << digit << endl;
+    return stoi(digit);
+}
+*/
+
+
+int getCoordinateFromKeypad(const string &prompt) {
+ int coord;
+        while (true) {
+            cout << "Enter a number between 0 and 9: ";
+            if (!(cin >> coord)) {
+                cout << "Invalid input. Please enter a number between 0 and 9." << endl;
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                continue;
+            }
+            if (coord < 0 || coord > 9) {
+                cout << "Number must be between 0 and 9. Try again." << endl;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                continue;
+            }
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return coord;
+        }
 }
 
-// Display both the player's own grid and the opponent's grid view.
-// Note: We pass the arrays by reference.
+
+// Print the player's own grid.
+// Ships (cells that are not " " and not hit/miss) are shown as a solid square (■),
+// hits as "X", and misses as "o".
+void printPlayerGrid(const string (&grid)[GRID_SIZE][GRID_SIZE]) {
+    cout << "   ";
+    for (int i = 0; i < GRID_SIZE; i++){
+         cout << i << " ";
+    }
+    cout << "\n   ";
+    for (int i = 0; i < GRID_SIZE; i++){
+         cout << "--";
+    }
+    cout << "\n";
+    for (int r = 0; r < GRID_SIZE; r++) {
+       cout << r << "| ";
+       for (int c = 0; c < GRID_SIZE; c++){
+          string cell = grid[r][c];
+          if(cell == "X") {
+              cout << "X ";
+          } else if(cell == "o") {
+              cout << "o ";
+          } else if(cell != " ") {
+              cout << "\u25A0" << " ";  // Solid square for ship parts
+          } else {
+              cout << "  ";
+          }
+       }
+       cout << "\n";
+    }
+}
+
+// Print the opponent's grid.
+// Unknown cells are shown as "?", misses as blank, and hits as a white square (□, Unicode U+25A1).
+void printOpponentGrid(const string (&grid)[GRID_SIZE][GRID_SIZE]) {
+    cout << "   ";
+    for (int i = 0; i < GRID_SIZE; i++){
+         cout << i << " ";
+    }
+    cout << "\n   ";
+    for (int i = 0; i < GRID_SIZE; i++){
+         cout << "--";
+    }
+    cout << "\n";
+    for (int r = 0; r < GRID_SIZE; r++) {
+       cout << r << "| ";
+       for (int c = 0; c < GRID_SIZE; c++){
+          string cell = grid[r][c];
+          if(cell == "X") {
+              cout << "\u25A0" << " ";  // White square for hits
+          } else if(cell == "o") {
+              cout << "  "; // Misses are blank
+          } else {
+              cout << "? ";
+          }
+       }
+       cout << "\n";
+    }
+}
+
+// Display both grids.
 void displayGrids(const string (&myGrid)[GRID_SIZE][GRID_SIZE], const string (&oppGrid)[GRID_SIZE][GRID_SIZE]) {
     cout << "\nYour Grid:" << endl;
-    printFleetDetailed(myGrid);
+    printPlayerGrid(myGrid);
     cout << "\nOpponent Grid:" << endl;
-    printFleet(oppGrid);
+    printOpponentGrid(oppGrid);
     cout << endl;
 }
 
@@ -133,7 +203,7 @@ int main()
     // Get player name and server IP.
     cout << "Enter your name > ";
     getline(cin, user_name);
-    cout << "Server IP > ";
+    cout << "Enter server IP > ";
     getline(cin, server_ip);
     
     // Generate your own fleet on a 10x10 grid.
@@ -142,7 +212,7 @@ int main()
     const unsigned short fleet[FLEET_COUNT] = {5,4,3,3,2,2,2};
     autogenFleet(myMap, fleet);
     
-    // Create an opponent grid view (initially empty).
+    // Create an opponent grid view (initially unknown).
     string oppMap[GRID_SIZE][GRID_SIZE];
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
@@ -152,9 +222,9 @@ int main()
     
     // Display your initial fleet.
     cout << "\nYour Fleet:" << endl;
-    printFleetDetailed(myMap);
+    printPlayerGrid(myMap);
     
-    // Setup the keypad (adjust the GPIO pins if needed).
+    // Setup the keypad (if connected).
     int colPins[3] = {21, 20, 16};
     int rowPins[4] = {19, 13, 6, 5};
     Keypad kp(colPins, rowPins);
@@ -209,15 +279,23 @@ int main()
     bool gameOver = false;
     while (!gameOver && running) {
         if (myTurn) {
-            // Show both grids.
-            displayGrids(myMap, oppMap);
+
             
-            // Prompt for shot coordinates (X then Y) via the keypad.
+            // Prompt for shot coordinates 
             cout << "Your turn. Enter shot coordinates:" << endl;
-            int shotX = getCoordinate(kp, "Enter X coordinate (0-9): ");
-            int shotY = getCoordinate(kp, "Enter Y coordinate (0-9): ");
+            int shotX, shotY;
+            // Loop until a coordinate that hasn't been shot at is chosen.
+            while (true) {
+                shotX = getCoordinateFromKeypad(/*kp,*/ "Enter X coordinate (0-9): ");
+                shotY = getCoordinateFromKeypad(/*kp,*/ "Enter Y coordinate (0-9): ");
+                if (oppMap[shotY][shotX] != " ") {
+                    cout << "You've already shot at (" << shotX << ", " << shotY << "). Please choose different coordinates." << endl;
+                } else {
+                    break;
+                }
+            }
             
-            // Send the shot command: "PLAY,x,y\r\n" (note: removed the word "SHOT")
+            // Send the shot command: "PLAY,x,y\r\n"
             string shotCmd = "PLAY," + to_string(shotX) + "," + to_string(shotY) + "\r\n";
             send(sock, shotCmd.c_str(), shotCmd.length(), 0);
             cout << "Shot sent at (" << shotX << ", " << shotY << "). Waiting for result..." << endl;
@@ -244,6 +322,7 @@ int main()
                 if (result == "WIN") {
                     cout << "All enemy ships sunk. You win!" << endl;
                     gameOver = true;
+                    displayGrids(myMap, oppMap);
                     break;
                 }
                 // A hit gives you another turn.
@@ -253,6 +332,8 @@ int main()
                 cout << "Your shot missed." << endl;
                 myTurn = false;
             }
+            // Display grids after processing the shot.
+            displayGrids(myMap, oppMap);
         } else {
             // Opponent's turn: wait for a shot command.
             cout << "Waiting for opponent's shot..." << endl;
@@ -267,7 +348,6 @@ int main()
             token = getFromBuffer(shotMsg, ","); // "PLAY"
             string secondToken = getFromBuffer(shotMsg, ",");
             int shotX = 0, shotY = 0;
-            // If the message contains "RESULT", then it's a result message (unexpected here).
             if(secondToken == "RESULT"){
                 continue;
             } else {
@@ -285,17 +365,16 @@ int main()
                 myMap[shotY][shotX] = "X";
                 cout << "Your ship was hit!" << endl;
                 if (allShipsSunk(myMap)) {
-                    // All your ships are sunk – you lose.
                     response = "PLAY,RESULT,WIN\r\n";
                     send(sock, response.c_str(), response.length(), 0);
                     cout << "All your ships have been sunk. You lose." << endl;
                     gameOver = true;
+                    displayGrids(myMap, oppMap);
                     break;
                 } else {
                     response = "PLAY,RESULT,HIT\r\n";
                     send(sock, response.c_str(), response.length(), 0);
                 }
-                // Opponent gets another turn if they hit.
                 myTurn = false;
             } else {
                 // It's a miss.
@@ -304,17 +383,18 @@ int main()
                 cout << "Opponent missed." << endl;
                 response = "PLAY,RESULT,MISS\r\n";
                 send(sock, response.c_str(), response.length(), 0);
-                // Turn passes to you.
                 myTurn = true;
             }
+            // Display grids after processing the shot.
+            displayGrids(myMap, oppMap);
         }
     }
     
     // Display final grids.
     cout << "\nFinal Your Grid:" << endl;
-    printFleetDetailed(myMap);
+    printPlayerGrid(myMap);
     cout << "\nFinal Opponent Grid:" << endl;
-    printFleet(oppMap);
+    printOpponentGrid(oppMap);
     cout << "\nGame Over." << endl;
     
     close(sock);
