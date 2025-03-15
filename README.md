@@ -7,7 +7,7 @@ Describe how to compile and run your code.
 
 
 Hardware infrastructure:\
-
+something something
 
 
 Description of our game:\
@@ -21,7 +21,7 @@ After both players connect, the server will start to display each players play c
 
 How to compile and run our code:
 To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory. To compile, use this command in a Raspberry Pi PuTTy session :\ 
-`g++ -std=c++20 -o mygame  mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread`
+`g++ -std=c++20 -o mygame  mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread`\
 To run the game, you can type :\
 `./mygame` 
 
