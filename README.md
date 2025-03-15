@@ -1,4 +1,4 @@
-#### Battleship
+# Battleship
 
 ## Hardware infrastructure:
 something something
