@@ -1,7 +1,7 @@
 # Battleship
 
 ## Hardware infrastructure:
-something something
+Hardware we used were 2 Raspberry Pi's connected to a 4x3 keypad. The keypad is to allow user input for our Battleship game. You are able to type any number while also using ' * ' as a backspace and ' # ' to enter your input.
 
 
 ## Description of our game:
