@@ -65,7 +65,7 @@ void Keypad::get_key() {
         if (is_stopped) break;
         
         // Short delay at each loop iteration
-        this_thread::sleep_for(10ms);
+        this_thread::sleep_for(20ms);
         
         // Set column pins to output low
         for (int i = 0; i < MAXCOL; i++) {
@@ -132,7 +132,7 @@ string Keypad::get_digit(){
             last_digit = "";
             return temp;
         }
-        this_thread::sleep_for(0.1s);
+        this_thread::sleep_for(0.15s);
     }
 }
 

@@ -7,8 +7,7 @@
     and maintains a view of the opponent’s grid (initially unknown).
     After the READY/START handshake with the server, the players alternate turns:
     
-      - On your turn, you enter your shot’s X and Y coordinates.
-        You may choose to use the keypad or standard keyboard.
+      - On your turn, you enter your shot’s X and Y coordinates using the keypad.
         The shot is sent as: "PLAY,x,y\r\n".
       - The opponent processes the shot on their grid and replies with:
             "PLAY,RESULT,HIT\r\n"  if the shot hit a ship,
@@ -77,44 +76,34 @@ void signalHandler(int signum) {
     running = 0;
 }
 
-// Function to get a coordinate value using either keypad or keyboard.
-// The user is prompted to choose the input method.
-
-/*
-// New helper: Read a single digit from the keypad and validate it is between 0 and 9.
+// Read a number from the keypad. The user enters digits (0-9), can delete with '*',
+// and presses '#' to finish the input.
 int getCoordinateFromKeypad(Keypad &kp, const string &prompt) {
     cout << prompt << flush;
-    string digit = kp.get_digit();  // This call blocks until a key is pressed
-    // Validate that digit is in the range "0" to "9"
-    while (digit < "0" || digit > "9") {
-        cout << "\nInvalid digit. Please press a key 0-9." << endl;
-        cout << prompt << flush;
-        digit = kp.get_digit();
-    }
-    cout << digit << endl;
-    return stoi(digit);
-}
-*/
+    string input = "";
+    while (true) {
+        string key = kp.get_digit();  // Blocks until a key is pressed
 
-
-int getCoordinateFromKeypad(const string &prompt) {
- int coord;
-        while (true) {
-            cout << "Enter a number between 0 and 9: ";
-            if (!(cin >> coord)) {
-                cout << "Invalid input. Please enter a number between 0 and 9." << endl;
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                continue;
-            }
-            if (coord < 0 || coord > 9) {
-                cout << "Number must be between 0 and 9. Try again." << endl;
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                continue;
-            }
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return coord;
+        if (key == "#") {             // '#' means "enter"
+            // Only accept the input if there is at least one digit entered.
+            if (!input.empty()) break;
         }
+        else if (key == "*") {        // '*' means "delete last digit"
+            if (!input.empty()) {
+                input.pop_back();
+                // For a simple console update, we print a backspace.
+                cout << "\b \b" << flush;
+            }
+        }
+        else if (key >= "0" && key <= "9") {
+            input += key;
+            cout << key << flush;
+        }
+        // Optionally, ignore any other key presses.
+    }
+    cout << endl;
+    // Convert the entered string to an integer; you might want additional validation here.
+    return stoi(input);
 }
 
 
@@ -140,7 +129,7 @@ void printPlayerGrid(const string (&grid)[GRID_SIZE][GRID_SIZE]) {
           } else if(cell == "o") {
               cout << "o ";
           } else if(cell != " ") {
-              cout << "\u25A0" << " ";  // Solid square for ship parts
+              cout << "\u25A0" << " ";  // White square for ship parts
           } else {
               cout << "  ";
           }
@@ -279,15 +268,14 @@ int main()
     bool gameOver = false;
     while (!gameOver && running) {
         if (myTurn) {
-
             
-            // Prompt for shot coordinates 
-            cout << "Your turn. Enter shot coordinates:" << endl;
+            // Prompt for shot coordinates using keypad only.
+            cout << "Your turn. Enter shot coordinates.(# to enter shot, * to delete)" << endl;
             int shotX, shotY;
             // Loop until a coordinate that hasn't been shot at is chosen.
             while (true) {
-                shotX = getCoordinateFromKeypad(/*kp,*/ "Enter X coordinate (0-9): ");
-                shotY = getCoordinateFromKeypad(/*kp,*/ "Enter Y coordinate (0-9): ");
+                shotX = getCoordinateFromKeypad(kp, "Enter X coordinate (0-9): ");
+                shotY = getCoordinateFromKeypad(kp, "Enter Y coordinate (0-9): ");
                 if (oppMap[shotY][shotX] != " ") {
                     cout << "You've already shot at (" << shotX << ", " << shotY << "). Please choose different coordinates." << endl;
                 } else {
@@ -322,7 +310,6 @@ int main()
                 if (result == "WIN") {
                     cout << "All enemy ships sunk. You win!" << endl;
                     gameOver = true;
-                    displayGrids(myMap, oppMap);
                     break;
                 }
                 // A hit gives you another turn.
@@ -369,7 +356,6 @@ int main()
                     send(sock, response.c_str(), response.length(), 0);
                     cout << "All your ships have been sunk. You lose." << endl;
                     gameOver = true;
-                    displayGrids(myMap, oppMap);
                     break;
                 } else {
                     response = "PLAY,RESULT,HIT\r\n";
