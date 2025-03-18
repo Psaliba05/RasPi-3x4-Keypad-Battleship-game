@@ -1,6 +1,6 @@
 /* ECEGRE-2020 - Seattle University
    Description: Homework#4 Header file for keypad class
-   Authors:
+   Authors:Brayton Alvarez and Paolo Saliba
 */
 
 #include <string>

@@ -76,35 +76,43 @@ void signalHandler(int signum) {
     running = 0;
 }
 
-// Read a number from the keypad. The user enters digits (0-9), can delete with '*',
-// and presses '#' to finish the input.
+// Read a one-digit number from the keypad. The user is required to press '#' to confirm
+// the digit, and may use '*' to delete the digit if needed.
 int getCoordinateFromKeypad(Keypad &kp, const string &prompt) {
     cout << prompt << flush;
     string input = "";
     while (true) {
         string key = kp.get_digit();  // Blocks until a key is pressed
 
-        if (key == "#") {             // '#' means "enter"
-            // Only accept the input if there is at least one digit entered.
-            if (!input.empty()) break;
-        }
-        else if (key == "*") {        // '*' means "delete last digit"
+        if (key == "#") {
+            // Submit: only accept if exactly one digit was entered.
             if (!input.empty()) {
-                input.pop_back();
-                // For a simple console update, we print a backspace.
+                break;
+            }
+            // If no digit was entered yet, ignore '#' and continue.
+        } 
+        else if (key == "*") {
+            // Backspace: remove the digit if one exists.
+            if (!input.empty()) {
+                input.clear();
+                // Optionally update the console display (backspace)
                 cout << "\b \b" << flush;
             }
-        }
+        } 
         else if (key >= "0" && key <= "9") {
-            input += key;
-            cout << key << flush;
+            // Only accept a digit if no digit has been entered yet.
+            if (input.empty()) {
+                input = key;
+                cout << key << flush;
+            }
+            // If a digit is already present, ignore additional numeric keys.
         }
-        // Optionally, ignore any other key presses.
+        // Other keys (if any) are simply ignored.
     }
     cout << endl;
-    // Convert the entered string to an integer; you might want additional validation here.
     return stoi(input);
 }
+
 
 
 // Print the player's own grid.
