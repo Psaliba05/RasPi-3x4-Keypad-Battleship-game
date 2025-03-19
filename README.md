@@ -13,7 +13,7 @@ We used a 4x3 keypad connected to the Raspberry Pi, this keypad functions like a
 ## Game message exchange protocol:
 After both players connect, the server will start to display each players play coordinate followed by the result of the shot (either hit a ship or missed a ship)\
 \
-Example of what the code would look like is:\
+Example of a game message after a play:\
 \
 Your turn. Enter shot coordinates.(# to enter shot, * to delete)\
 Enter X coordinate (0-9): 4\
