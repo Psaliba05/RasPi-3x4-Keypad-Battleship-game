@@ -11,8 +11,44 @@ We wanted to create a replica of the famous game "Battleship". Where two players
 We used a 4x3 keypad connected to the Raspberry Pi, this keypad functions like any ordinary keypad where you can click any number you want. First be prompt to enter a number from 0-9 for your X coordinate. Next, it will ask for a 0-9 number for your Y coordinate. The game will then register your input as a "shot" at the opponents corresponding grid.
 
 ## Game message exchange protocol:
-After both players connect, the server will start to display each players play coordinate followed by the result of the shot (either hit a ship or missed a ship)
-
+After both players connect, the server will start to display each players play coordinate followed by the result of the shot (either hit a ship or missed a ship)\
+\
+Example of what the code would look like is:\
+\
+Your turn. Enter shot coordinates.(# to enter shot, * to delete)\
+Enter X coordinate (0-9): 4\
+Enter Y coordinate (0-9): 3\
+Shot sent at (4, 3). Waiting for result...\
+Your shot hit the enemy ship!\
+\
+Your Grid:\
+   0 1 2 3 4 5 6 7 8 9\
+   --------------------\
+0|     o         o\
+1|     X   X\
+2|   o X o X     o ■\
+3|     X   X     o ■\
+4|     o   X o     ■ o\
+5| o ■ o   X o o   o\
+6|   ■         X o\
+7|   o         X\
+8| ■ ■ o   o   o\
+9|     o ■ ■ ■ ■ o\
+\
+Opponent Grid:\
+   0 1 2 3 4 5 6 7 8 9\
+   --------------------\
+0| ? ? ? ? ? ? ? ? ? ?\
+1| ? ? ? ? ?   ? ?   ?\
+2| ? ?   ? ?   ? ? ? ?\
+3|   ■ ? ■ ■ ■     ? ?\
+4| ? ?   ? ? ? ? ■ ? ?\
+5| ? ? ? ?   ? ? ■ ? ?\
+6| ? ?   ? ? ? ?   ? ?\
+7|   ■ ■     ■ ■ ■\
+8| ?   ? ? ? ? ? ?   ?\
+9| ? ?   ■ ■ ■ ■   ? ?\
+\
 ## How to compile and run our code:
 To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory.\
 \
