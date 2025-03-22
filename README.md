@@ -12,50 +12,50 @@ We used a 4x3 keypad connected to the Raspberry Pi, this keypad functions like a
 
 ## Game message exchange protocol:
 After both players connect, the server will start to display each players play coordinate followed by the result of the shot (either hit a ship or missed a ship)\
-\
-**Example of a game message after a play:**\
-\
+
+**Example of a game message after a play:**
+
 ```
-Your turn. Enter shot coordinates.(# to enter shot, * to delete)\
-Enter X coordinate (0-9): 4\
-Enter Y coordinate (0-9): 3\
-Shot sent at (4, 3). Waiting for result...\
-Your shot hit the enemy ship!\
+Your turn. Enter shot coordinates.(# to enter shot, * to delete)
+Enter X coordinate (0-9): 4
+Enter Y coordinate (0-9): 3
+Shot sent at (4, 3). Waiting for result...
+Your shot hit the enemy ship!
+
+Your Grid:
+   0 1 2 3 4 5 6 7 8 9
+   --------------------
+0|     o         o
+1|     X   X
+2|   o X o X     o ■
+3|     X   X     o ■
+4|     o   X o     ■ o
+5| o ■ o   X o o   o
+6|   ■         X o
+7|   o         X
+8| ■ ■ o   o   o
+9|     o ■ ■ ■ ■ o
 \
-Your Grid:\
-   0 1 2 3 4 5 6 7 8 9\
-   --------------------\
-0|     o         o\
-1|     X   X\
-2|   o X o X     o ■\
-3|     X   X     o ■\
-4|     o   X o     ■ o\
-5| o ■ o   X o o   o\
-6|   ■         X o\
-7|   o         X\
-8| ■ ■ o   o   o\
-9|     o ■ ■ ■ ■ o\
-\
-Opponent Grid:\
-   0 1 2 3 4 5 6 7 8 9\
-   --------------------\
-0| ? ? ? ? ? ? ? ? ? ?\
-1| ? ? ? ? ?   ? ?   ?\
-2| ? ?   ? ?   ? ? ? ?\
-3|   ■ ? ■ ■ ■     ? ?\
-4| ? ?   ? ? ? ? ■ ? ?\
-5| ? ? ? ?   ? ? ■ ? ?\
-6| ? ?   ? ? ? ?   ? ?\
-7|   ■ ■     ■ ■ ■\
-8| ?   ? ? ? ? ? ?   ?\
+Opponent Grid:
+   0 1 2 3 4 5 6 7 8 9
+   --------------------
+0| ? ? ? ? ? ? ? ? ? ?
+1| ? ? ? ? ?   ? ?   ?
+2| ? ?   ? ?   ? ? ? ?
+3|   ■ ? ■ ■ ■     ? ?
+4| ? ?   ? ? ? ? ■ ? ?
+5| ? ? ? ?   ? ? ■ ? ?
+6| ? ?   ? ? ? ?   ? ?
+7|   ■ ■     ■ ■ ■
+8| ?   ? ? ? ? ? ?   ?
 9| ? ?   ■ ■ ■ ■   ? ?
 ```
 ## How to compile and run our code:
 To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory.\
-\
-To compile, use this command in a Raspberry Pi PuTTY session :\
-`g++ -std=c++20 -o mygame  mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread`\
-\
-To run the game, you can type :\
+
+To compile, use this command in a Raspberry Pi PuTTY session :
+`g++ -std=c++20 -o mygame  mygame.cpp genFleet.cpp keypad.cpp -lwiringPi -lpthread`
+
+To run the game, you can type :
 `./mygame` 
 
