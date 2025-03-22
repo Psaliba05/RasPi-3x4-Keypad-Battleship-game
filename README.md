@@ -15,6 +15,7 @@ After both players connect, the server will start to display each players play c
 \
 **Example of a game message after a play:**\
 \
+```
 Your turn. Enter shot coordinates.(# to enter shot, * to delete)\
 Enter X coordinate (0-9): 4\
 Enter Y coordinate (0-9): 3\
@@ -48,6 +49,7 @@ Opponent Grid:\
 7|   ■ ■     ■ ■ ■\
 8| ?   ? ? ? ? ? ?   ?\
 9| ? ?   ■ ■ ■ ■   ? ?
+```
 ## How to compile and run our code:
 To compile our code you will need to make sure you have all correct files for the game (mygame.cpp, keypad.cpp, keypad.h, Hw4.cpp, genFleet.h, and genFleet.cpp) in a folder and make sure you are in that directory.\
 \
